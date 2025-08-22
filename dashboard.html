@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ChargeHub - Phase 3</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      text-align: center;
+    }
+    header {
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      background: #111;
+      border-bottom: 2px solid #1db954;
+    }
+    #map {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+    }
+    .hidden { display: none; }
+    .card {
+      background: #1c1c1c;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 12px;
+      width: 300px;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(29,185,84,0.4);
+    }
+    button {
+      background: #1db954;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+    }
+    input {
+      width: 90%;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <header>⚡ ChargeHub - Charge Anywhere, Connect Everywhere ⚡</header>
+
+  <!-- 🔹 Auth Section -->
+  <div id="auth-section">
+    <h2>Login / Signup</h2>
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <select id="role">
+      <option value="Owner">Owner</option>
+      <option value="Provider">Provider</option>
+    </select><br><br>
+    <button onclick="signup()">Signup</button>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- 🔹 Owner Dashboard -->
+  <div id="owner-section" class="hidden">
+    <h2>Welcome Owner 👤</h2>
+    <div id="map"></div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- 🔹 Provider Dashboard -->
+  <div id="provider-section" class="hidden">
+    <h2>Welcome Provider ⚡</h2>
+    <div class="card">
+      <h3>Add Charger</h3>
+      <input type="text" id="stationName" placeholder="Station Name">
+      <input type="text" id="stationPhone" placeholder="Contact Number">
+      <input type="text" id="stationLat" placeholder="Latitude">
+      <input type="text" id="stationLng" placeholder="Longitude">
+      <button onclick="addCharger()">Add Charger</button>
+    </div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Firebase + Google Maps SDK -->
+  <script type="module">
+    // 🔹 Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, addDoc, collection, onSnapshot } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔹 Firebase Config (yaha apna config paste karo)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // 🔹 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+
+    let currentUserRole = null; // global role tracker
+
+    // 🔹 Signup
+    async function signup() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        // Save user role in Firestore
+        await setDoc(doc(db, "users", userCred.user.uid), { role: role });
+        alert("Signup successful!");
+        showDashboard(role);
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // 🔹 Login
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const docSnap = await getDoc(doc(db, "users", userCred.user.uid));
+        if (docSnap.exists()) {
+          const role = docSnap.data().role;
+          currentUserRole = role;
+          showDashboard(role);
+        } else {
+          alert("Role not found in Firestore!");
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // 🔹 Logout
+    async function logout() {
+      await signOut(auth);
+      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("owner-section").classList.add("hidden");
+      document.getElementById("provider-section").classList.add("hidden");
+    }
+
+    // 🔹 Show Dashboard by Role
+    function showDashboard(role) {
+      document.getElementById("auth-section").classList.add("hidden");
+      if (role === "Owner") {
+        document.getElementById("owner-section").classList.remove("hidden");
+        initMap(); // show Google Map
+      } else {
+        document.getElementById("provider-section").classList.remove("hidden");
+      }
+    }
+
+    // 🔹 Add Charger (Provider)
+    async function addCharger() {
+      const name = document.getElementById("stationName").value;
+      const phone = document.getElementById("stationPhone").value;
+      const lat = parseFloat(document.getElementById("stationLat").value);
+      const lng = parseFloat(document.getElementById("stationLng").value);
+
+      try {
+        await addDoc(collection(db, "chargers"), {
+          name: name,
+          phone: phone,
+          lat: lat,
+          lng: lng
+        });
+        alert("Charger added!");
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // 🔹 Google Maps
+    let map;
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 19.0760, lng: 72.8777 }, // Mumbai default
+        zoom: 12,
+        styles: [ // dark mode style
+          { elementType: "geometry", stylers: [{ color: "#212121" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+          { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+          { featureType: "road", elementType: "geometry", stylers: [{ color: "#2c2c2c" }] },
+          { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#373737" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
+          { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#3d3d3d" }] }
+        ]
+      });
+
+      // Realtime listener for chargers
+      onSnapshot(collection(db, "chargers"), (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            const charger = change.doc.data();
+            const marker = new google.maps.Marker({
+              position: { lat: charger.lat, lng: charger.lng },
+              map: map,
+              title: charger.name
+            });
+            const infoWindow = new google.maps.InfoWindow({
+              content: `<b>${charger.name}</b><br>📞 <a href="tel:${charger.phone}">${charger.phone}</a>`
+            });
+            marker.addListener("click", () => {
+              infoWindow.open(map, marker);
+            });
+          }
+        });
+      });
+    }
+
+    // expose functions to global scope
+    window.signup = signup;
+    window.login = login;
+    window.logout = logout;
+    window.addCharger = addCharger;
+    window.initMap = initMap;
+
+  </script>
+
+  <!-- Google Maps Script (replace YOUR_KEY with actual key) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
+</body>
+</html>
