@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ChargeHub — Charge Anywhere and Connect Everywhere</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Minimal CSS for CRED-like dark neon theme -->
+  <style>
+    :root{
+      --bg:#070708;
+      --card:#0f1113;
+      --muted:#9aa0a6;
+      --text:#f5f7fb;
+      --neon:#39ff14; /* green */
+      --accent:#00ffff; /* cyan */
+      --purple:#b026ff;
+      --radius:16px;
+      --glass: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; font-family:Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{background:
+      radial-gradient(900px 500px at 10% 10%, rgba(176,38,255,0.04), transparent 20%),
+      radial-gradient(800px 400px at 90% 90%, rgba(0,255,255,0.03), transparent 20%),
+      var(--bg);
+      color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      line-height:1.45; padding-bottom:60px;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{width:min(1150px, 94vw); margin:0 auto; padding:0 12px;}
+
+    /* Header / Nav */
+    header.nav{position:sticky; top:0; z-index:60; backdrop-filter:saturate(140%) blur(8px); background:rgba(8,8,8,0.55); border-bottom:1px solid rgba(255,255,255,0.04)}
+    .nav-inner{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0;}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(57,255,20,.12), rgba(0,255,255,.06)); box-shadow:0 8px 30px rgba(57,255,20,.06)}
+    .brand h1{margin:0; font-family:Poppins, sans-serif; font-weight:700; letter-spacing:.6px}
+    .tag{font-size:12px; color:var(--muted)}
+    .nav-actions{display:flex; gap:10px; align-items:center}
+    .btn{padding:10px 14px; border-radius:999px; background:transparent; color:var(--text); border:1px solid rgba(255,255,255,0.06); font-weight:600; cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg, rgba(57,255,20,0.14), rgba(0,0,0,0)); border-color: rgba(57,255,20,0.28); box-shadow:0 0 10px rgba(57,255,20,0.08)}
+    .btn:active{transform:translateY(1px)}
+    .small{font-size:13px; color:var(--muted)}
+
+    /* Hero */
+    .hero{padding:64px 0 36px}
+    .hero-grid{display:grid; grid-template-columns:1fr .9fr; gap:28px; align-items:center}
+    .headline{font-family:Poppins, sans-serif; font-size:44px; margin:0 0 10px; line-height:1.02}
+    .headline .accent{background:linear-gradient(90deg,var(--neon),var(--accent)); -webkit-background-clip:text; color:transparent}
+    .lead{color:var(--muted); font-size:16px; margin:0 0 18px}
+    .hero-card{background:var(--glass); border:1px solid rgba(255,255,255,0.04); border-radius:18px; padding:18px; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.01)}
+
+    /* sections & cards */
+    .section{padding:36px 0}
+    .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+    .card{background:var(--card); border-radius:14px; padding:16px; border:1px solid rgba(255,255,255,0.04)}
+    .badge{display:inline-block; padding:6px 10px; background:var(--neon); color:#07110a; border-radius:999px; font-weight:700; font-size:12px}
+
+    /* Map layout */
+    .map-wrap{display:grid; grid-template-columns:1.15fr .85fr; gap:16px; align-items:start}
+    #map{height:480px; border-radius:14px; border:1px solid rgba(255,255,255,0.04); overflow:hidden}
+    .list{display:flex; flex-direction:column; gap:12px}
+    .list .row{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:12px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.03)}
+    .pill{font-size:13px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.06);}
+
+    /* Modal */
+    .modal-backdrop{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:120}
+    .modal{width:min(620px,92vw); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:14px; border:1px solid rgba(255,255,255,0.04); padding:18px}
+    .form-input{width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background:#0b0c0d; color:var(--text)}
+
+    /* small */
+    .muted{color:var(--muted); font-size:14px}
+    footer{padding:28px 0; border-top:1px solid rgba(255,255,255,0.03); color:var(--muted); margin-top:28px}
+
+    @media (max-width:920px){
+      .hero-grid, .map-wrap, .grid-3{grid-template-columns:1fr}
+      .headline{font-size:32px}
+      #map{height:360px}
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- simple plug+pin svg -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z" stroke="rgba(57,255,20,.9)" stroke-width="1.6"/>
+            <path d="M9 9h6m-4-3v3m4-3v3" stroke="rgba(57,255,20,.9)" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1 style="font-size:16px">CHARGEHUB</h1>
+          <div class="tag">Charge Anywhere and Connect Everywhere</div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn" id="findBtn">Find Chargers</button>
+        <button class="btn btn-primary" id="openAuth">Sign up / Login</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main>
+    <section class="hero container">
+      <div class="hero-grid">
+        <div>
+          <h2 class="headline">Premium EV charging,<br><span class="accent">anywhere & everywhere.</span></h2>
+          <p class="lead">Connect with nearby charging point providers. Book slots, pay securely — all in a smooth, premium interface.</p>
+
+          <div class="hero-card" style="max-width:520px">
+            <label class="small muted">Find chargers near</label>
+            <input id="searchInput" class="form-input" placeholder="Enter area or allow location access (e.g., Andheri West)" />
+            <div style="margin-top:12px; display:flex; gap:10px">
+              <button class="btn btn-primary" id="searchBtn">Search Chargers</button>
+              <button class="btn" id="openList">List Your Charger</button>
+            </div>
+            <div class="small muted" style="margin-top:10px">No hardware lock-in • Pay per use • Ratings & reviews</div>
+          </div>
+        </div>
+
+        <div class="hero-card" aria-hidden="true" style="height:320px; display:flex; align-items:center; justify-content:center; flex-direction:column">
+          <div class="badge" style="margin-bottom:12px">LIVE PREVIEW</div>
+          <h3 style="margin:0 0 8px">Dark map + neon pins</h3>
+          <p class="muted" style="max-width:300px">Interactive map below — marker click opens details with Call & Book options.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section container">
+      <h2 style="margin:0 0 10px; font-family:Poppins">Built for the EV ecosystem</h2>
+      <div class="grid-3" style="margin-top:14px">
+        <div class="card">
+          <div class="badge">EV Owners</div>
+          <h3 style="margin:10px 0 6px">Find. Call. Book.</h3>
+          <p class="muted">Discover chargers, call providers, book slots and pay securely.</p>
+        </div>
+        <div class="card">
+          <div class="badge">Providers</div>
+          <h3 style="margin:10px 0 6px">List & earn</h3>
+          <p class="muted">Add your charger, set price & schedule, accept bookings and view earnings.</p>
+        </div>
+        <div class="card">
+          <div class="badge">Trust</div>
+          <h3 style="margin:10px 0 6px">Ratings & Safety</h3>
+          <p class="muted">Mutual ratings, optional KYC and in-app reviews build trust.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAP + LIST -->
+    <section id="search" class="section container">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px">
+        <h2 style="margin:0">Search chargers near you</h2>
+        <div class="small muted">Google Maps (dark). Click a marker → details & call.</div>
+      </div>
+
+      <div class="map-wrap">
+        <!-- Map -->
+        <div id="map" aria-label="Map"></div>
+
+        <!-- Right list / provider quick add / summaries -->
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <h3 style="margin:0 0 8px">Chargers Nearby</h3>
+            <div id="chargerList" class="list"></div>
+          </div>
+
+          <!-- Provider quick add -->
+          <div id="providerQuick" class="card" style="display:none; margin-bottom:12px">
+            <h3 style="margin:0 0 8px">Add your charger (Provider)</h3>
+            <input id="pName" class="form-input" placeholder="Listing name e.g. DC 30kW - Andheri" style="margin-bottom:8px"/>
+            <input id="pPhone" class="form-input" placeholder="Phone +91..." style="margin-bottom:8px"/>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px">
+              <input id="pLat" class="form-input" placeholder="Latitude"/>
+              <input id="pLng" class="form-input" placeholder="Longitude"/>
+            </div>
+            <input id="pCity" class="form-input" placeholder="City (Mumbai / Delhi / Pune / Bengaluru)"/>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <button id="addListing" class="btn btn-primary">Add Listing (local)</button>
+              <button id="centerMap" class="btn">Use My Location</button>
+            </div>
+            <div class="muted" style="margin-top:8px">Demo stores listings in Firestore. For production enable KYC & verification.</div>
+          </div>
+
+          <!-- Provider earnings -->
+          <div id="earningsCard" class="card" style="display:none; margin-bottom:12px">
+            <h3 style="margin:0 0 8px">Earnings</h3>
+            <div id="earningsBody" class="muted">No earnings yet.</div>
+          </div>
+
+          <!-- Owner bookings -->
+          <div id="bookingsCard" class="card" style="display:none">
+            <h3 style="margin:0 0 8px">Your Bookings</h3>
+            <div id="bookingsBody" class="muted">No bookings yet.</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section container">
+      <div style="display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:center">
+        <div>
+          <h2 style="margin:0">List your charger. Start earning.</h2>
+          <p class="muted" style="margin:6px 0 0">Apartments • Shops • Offices • Cafés — monetize your idle charger with full control.</p>
+          <div style="margin-top:12px">
+            <button id="becomeProvider" class="btn btn-primary">Create Provider Account</button>
+            <button id="learnMore" class="btn">How it works</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="badge">Provider perks</div>
+          <ul class="muted" style="margin:10px 0 0; padding-left:18px">
+            <li>Featured listing upgrades</li>
+            <li>Instant payouts (UPI)</li>
+            <li>Peak-hour dynamic pricing</li>
+            <li>Business dashboard & analytics</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap">
+      <div><strong>ChargeHub</strong> • <span class="muted">Charge Anywhere and Connect Everywhere</span></div>
+      <div class="muted">© <span id="year"></span> ChargeHub</div>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div id="auth" class="modal-backdrop">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3 style="margin:0">Create / Login</h3>
+        <button class="btn" id="closeAuth">Close</button>
+      </div>
+      <p class="muted" style="margin:6px 0 12px">Choose role & sign in with email/password (demo).</p>
+      <div style="display:grid; gap:8px">
+        <div style="display:flex; gap:8px">
+          <label style="display:flex; gap:6px; align-items:center"><input type="radio" name="role" value="Owner" checked> Owner</label>
+          <label style="display:flex; gap:6px; align-items:center"><input type="radio" name="role" value="Provider"> Provider</label>
+        </div>
+        <input id="authName" class="form-input" placeholder="Full name (optional)"/>
+        <input id="authPhone" class="form-input" placeholder="Phone +91..." />
+        <input id="authEmail" class="form-input" placeholder="Email"/>
+        <input id="authPassword" type="password" class="form-input" placeholder="Password (min 6 chars)"/>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <button id="authSignup" class="btn btn-primary">Sign Up</button>
+          <button id="authLogin" class="btn">Login</button>
+        </div>
+        <div class="muted" style="margin-top:8px; font-size:13px">By continuing you accept Terms & Privacy.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKING MODAL -->
+  <div id="bookingModal" class="modal-backdrop">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3 style="margin:0">Book Charger</h3>
+        <button class="btn" id="closeBooking">Close</button>
+      </div>
+      <div id="bookingInfo" class="muted" style="margin-top:8px"> </div>
+      <div style="display:grid; gap:8px; margin-top:12px">
+        <input id="bkDate" class="form-input" type="date" />
+        <input id="bkTime" class="form-input" type="time" />
+        <input id="bkAmount" class="form-input" type="number" placeholder="Amount (₹) e.g., 300" />
+      </div>
+      <div id="commissionPreview" class="muted" style="margin-top:8px"></div>
+      <div style="display:flex; gap:10px; margin-top:12px">
+        <button id="payNow" class="btn btn-primary">Pay & Confirm</button>
+        <button id="callProvider" class="btn">Call Provider</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATING MODAL -->
+  <div id="ratingModal" class="modal-backdrop">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3 style="margin:0">Rate Your Experience</h3>
+        <button class="btn" id="closeRating">Close</button>
+      </div>
+      <div style="margin-top:8px" class="muted">Rate the provider and leave a short review.</div>
+      <div style="display:grid; gap:8px; margin-top:12px">
+        <select id="ratingScore" class="form-input">
+          <option value="5">5 — Excellent</option>
+          <option value="4">4 — Good</option>
+          <option value="3">3 — Okay</option>
+          <option value="2">2 — Poor</option>
+          <option value="1">1 — Bad</option>
+        </select>
+        <textarea id="ratingText" class="form-input" placeholder="Write a short review (optional)"></textarea>
+        <div style="display:flex; gap:8px">
+          <button id="submitRating" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase / Razorpay / Google Maps scripts (compat libs) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <script>
+  /*****************************************************************************
+   * FINAL MERGED index.html (Phase 1→4 + Ratings)
+   * - Replace API keys below before running:
+   *   - firebaseConfig.* fields
+   *   - GOOGLE_MAPS_API_KEY
+   *   - RAZORPAY_KEY_ID
+   * - Run via a local server (Live Server / npx serve). Do NOT open file:// directly.
+   *****************************************************************************/
+
+  // ---------------- CONFIG (REPLACE THESE) ----------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaxpS07Mg4LyiSqABF2zLwO4t1LAgX1FQ",
+    authDomain: "chargehub-feb64.firebaseapp.com",
+    projectId: "chargehub-feb64",
+    storageBucket: "chargehub-feb64.firebasestorage.app",
+    messagingSenderId: "148105202234",
+    appId: "1:148105202234:web:24be49292f4c43d01e4303"
+  };
+  const GOOGLE_MAPS_API_KEY = "<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>";
+  const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_KEY_ID"; // rzp_test_...
+
+  // --------------- INITIAL SETUP ---------------
+  // Year in footer
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // UI elements refs
+  const openAuthBtn = document.getElementById('openAuth');
+  const authModal = document.getElementById('auth');
+  const closeAuth = document.getElementById('closeAuth');
+  const authSignup = document.getElementById('authSignup');
+  const authLogin = document.getElementById('authLogin');
+  const authName = document.getElementById('authName');
+  const authPhone = document.getElementById('authPhone');
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+
+  const findBtn = document.getElementById('findBtn');
+  const searchBtn = document.getElementById('searchBtn');
+  const searchInput = document.getElementById('searchInput');
+  const openList = document.getElementById('openList');
+  const becomeProvider = document.getElementById('becomeProvider');
+
+  const providerQuick = document.getElementById('providerQuick');
+  const addListingBtn = document.getElementById('addListing');
+  const centerMapBtn = document.getElementById('centerMap');
+
+  const bookingModal = document.getElementById('bookingModal');
+  const closeBooking = document.getElementById('closeBooking');
+  const bookingInfo = document.getElementById('bookingInfo');
+  const bkDate = document.getElementById('bkDate');
+  const bkTime = document.getElementById('bkTime');
+  const bkAmount = document.getElementById('bkAmount');
+  const commissionPreview = document.getElementById('commissionPreview');
+  const payNowBtn = document.getElementById('payNow');
+  const callProviderBtn = document.getElementById('callProvider');
+
+  const chargerListEl = document.getElementById('chargerList');
+  const earningsCard = document.getElementById('earningsCard');
+  const earningsBody = document.getElementById('earningsBody');
+  const bookingsCard = document.getElementById('bookingsCard');
+  const bookingsBody = document.getElementById('bookingsBody');
+
+  const bookingModalBackdrop = bookingModal;
+  const ratingModal = document.getElementById('ratingModal');
+  const closeRating = document.getElementById('closeRating');
+  const submitRating = document.getElementById('submitRating');
+
+  // Global runtime state
+  let map = null;
+  let infoWindow = null;
+  let currentUser = null;
+  let currentRole = 'Owner'; // default
+  let markers = {}; // chargerId -> marker
+  let selectedCharger = null; // object from Firestore
+  let unsubscribeChargers = null;
+
+  // Commission table (city -> rate)
+  const COMMISSION_RATES = { Mumbai:0.10, Delhi:0.12, Pune:0.08, Bengaluru:0.09, Default:0.05 };
+
+  function detectRegion(lat,lng, fallbackCity){
+    // simple bounding boxes (approx) - extend as needed
+    if(lat>18.8 && lat<19.4 && lng>72.7 && lng<73.1) return 'Mumbai';
+    if(lat>28.3 && lat<28.9 && lng>76.8 && lng<77.5) return 'Delhi';
+    if(lat>18.4 && lat<18.7 && lng>73.7 && lng<73.95) return 'Pune';
+    if(lat>12.85 && lat<13.2 && lng>77.45 && lng<77.8) return 'Bengaluru';
+    return fallbackCity || 'Default';
+  }
+  function commissionFor(city){ return COMMISSION_RATES[city] ?? COMMISSION_RATES.Default; }
+
+  // ---------------- UI Helpers ----------------
+  function showAuth(){ authModal.style.display = 'flex'; }
+  function hideAuth(){ authModal.style.display = 'none'; }
+  function showBooking(){ bookingModalBackdrop.style.display = 'flex'; }
+  function hideBooking(){ bookingModalBackdrop.style.display = 'none'; }
+  function showRating(){ ratingModal.style.display = 'flex'; }
+  function hideRating(){ ratingModal.style.display = 'none'; }
+
+  // toggle provider-specific UI
+  function setRoleUI(role){
+    currentRole = role;
+    // show/hide provider quick add & earnings
+    if(role === 'Provider'){
+      providerQuick.style.display = 'block';
+      earningsCard.style.display = 'block';
+      bookingsCard.style.display = 'none';
+    } else {
+      providerQuick.style.display = 'none';
+      earningsCard.style.display = 'none';
+      bookingsCard.style.display = 'block';
+    }
+  }
+
+  // ---------------- AUTH (Signup/Login) ----------------
+  openAuthBtn.addEventListener('click', showAuth);
+  closeAuth.addEventListener('click', hideAuth);
+
+  authSignup.addEventListener('click', async ()=>{
+    const name = authName.value.trim();
+    const phone = authPhone.value.trim();
+    const email = authEmail.value.trim();
+    const pass = authPassword.value.trim();
+    const role = document.querySelector('input[name="role"]:checked').value;
+    if(!email || !pass) return alert('Enter email & password');
+    try{
+      const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+      currentUser = userCred.user;
+      // Save profile & role
+      await db.collection('users').doc(currentUser.uid).set({ name, phone, email, role });
+      setRoleUI(role);
+      hideAuth();
+      alert('Signed up as '+role);
+    }catch(e){ alert('Signup error: '+ e.message); }
+  });
+
+  authLogin.addEventListener('click', async ()=>{
+    const email = authEmail.value.trim();
+    const pass = authPassword.value.trim();
+    try{
+      const u = await auth.signInWithEmailAndPassword(email, pass);
+      currentUser = u.user;
+      // fetch role from users collection
+      const snap = await db.collection('users').doc(currentUser.uid).get();
+      const role = snap.exists ? (snap.data().role||'Owner') : 'Owner';
+      setRoleUI(role === 'Provider' ? 'Provider' : 'Owner');
+      hideAuth();
+      alert('Logged in as '+ (role === 'Provider' ? 'Provider' : 'Owner'));
+    }catch(e){ alert('Login error: '+ e.message); }
+  });
+
+  // auth state change listener
+  auth.onAuthStateChanged(async (u)=>{
+    currentUser = u;
+    if(u){
+      // if user exists, fetch role and initialize UI
+      const snap = await db.collection('users').doc(u.uid).get();
+      const role = snap.exists ? (snap.data().role||'Owner') : 'Owner';
+      setRoleUI(role === 'Provider' ? 'Provider' : 'Owner');
+      document.getElementById('openAuth').style.display='none';
+      document.getElementById('findBtn').textContent = 'Find Chargers';
+      // start chargers listener if map already loaded
+    } else {
+      // logged out
+      currentRole = 'Owner';
+      setRoleUI('Owner');
+      document.getElementById('openAuth').style.display='inline-flex';
+    }
+  });
+
+  // ---------------- Google Maps Loader ----------------
+  function loadGoogleMaps(){
+    // dynamic load script to allow key replacement
+    if(!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY'){
+      console.warn('Set GOOGLE_MAPS_API_KEY constant to load maps.');
+      // create a placeholder map area with message
+      document.getElementById('map').innerHTML = '<div style="display:grid;place-items:center;height:100%;color:var(--muted)">Add Google Maps API key to see live map here.</div>';
+      return;
+    }
+    // create script tag
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GOOGLE_MAPS_API_KEY)}&callback=initMap`;
+    s.async = true; s.defer = true; document.head.appendChild(s);
+  }
+
+  // Initialize map callback (called by Google API)
+  window.initMap = function(){
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat:19.1136, lng:72.8697 }, // Mumbai-ish default
+      zoom: 11,
+      styles: [
+        { elementType: 'geometry', stylers: [{ color: '#1d1f21' }] },
+        { elementType: 'labels.text.fill', stylers: [{ color: '#e0e0e0' }] },
+        { elementType: 'labels.text.stroke', stylers: [{ color: '#1d1f21' }] },
+        { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2d2f' }] },
+        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0b0d10' }] }
+      ]
+    });
+    infoWindow = new google.maps.InfoWindow();
+    startChargersListener(); // begin realtime listening
+  };
+
+  // ---------------- Firestore: Chargers listener & render ----------------
+  function clearMarkers(){
+    for(const k in markers){ markers[k].setMap(null); delete markers[k]; }
+  }
+
+  function startChargersListener(){
+    // detach previous listener
+    if(unsubscribeChargers) unsubscribeChargers();
+    unsubscribeChargers = db.collection('chargers').onSnapshot((snap)=>{
+      // clear list & markers and re-render (simple approach)
+      chargerListEl.innerHTML = '';
+      clearMarkers();
+      snap.forEach(doc=>{
+        const c = { id: doc.id, ...doc.data() };
+        renderChargerRow(c);
+        placeMarker(c);
+      });
+    }, err => {
+      console.error('chargers listener error', err);
+    });
+  }
+
+  function renderChargerRow(c){
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `
+      <div>
+        <div style="font-weight:700">${escapeHtml(c.name)}</div>
+        <div class="muted" style="font-size:13px">${escapeHtml(c.city || 'Unknown')} • ${escapeHtml(c.type || 'AC/DC')} • ₹${c.baseAmount || '—'}</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <div class="pill">${(c.rating||4.6).toFixed(1)}★</div>
+        <a class="btn" href="tel:${c.phone||''}">Call</a>
+        <button class="btn btn-primary">Book</button>
+      </div>
+    `;
+    row.querySelector('button').addEventListener('click', ()=> openBooking(c));
+    row.querySelector('a').addEventListener('click', e=> e.stopPropagation());
+    row.addEventListener('click', ()=> {
+      if(markers[c.id]) google.maps.event.trigger(markers[c.id], 'click');
+    });
+    chargerListEl.appendChild(row);
+  }
+
+  function placeMarker(c){
+    if(!map) return;
+    const pos = { lat: parseFloat(c.lat), lng: parseFloat(c.lng) };
+    const marker = new google.maps.Marker({
+      position: pos, map, title: c.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#39ff14',
+        fillOpacity: 1,
+        strokeColor: '#00ffff',
+        strokeWeight: 1
+      }
+    });
+    marker.addListener('click', ()=> {
+      // open info window with call & book buttons
+      const city = detectRegion(c.lat, c.lng, c.city);
+      const rate = commissionFor(city);
+      const content = `
+        <div style="min-width:240px">
+          <div style="font-weight:700; margin-bottom:4px">${escapeHtml(c.name)}</div>
+          <div style="font-size:12px; color:#9aa0a6; margin-bottom:8px">${escapeHtml(city)} • ${escapeHtml(c.type||'AC/DC')} • ₹${c.baseAmount||'—'} • ${(c.rating||4.6).toFixed(1)}★</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <a href="tel:${c.phone||''}" class="btn">Call</a>
+            <button class="btn btn-primary" id="bookBtn">Book</button>
+          </div>
+          <div style="margin-top:6px; font-size:12px; color:#9aa0a6">Commission: ${(rate*100).toFixed(0)}%</div>
+        </div>
+      `;
+      infoWindow.setContent(content);
+      infoWindow.open(map, marker);
+
+      // since Google InfoWindow content nodes are not in DOM immediately, use event listener slight delay
+      window.setTimeout(()=> {
+        const bookBtn = document.getElementById('bookBtn');
+        if(bookBtn) bookBtn.addEventListener('click', ()=> openBooking(c));
+      }, 200);
+    });
+    markers[c.id] = marker;
+  }
+
+  // ---------------- Provider: Add Listing ----------------
+  addListingBtn.addEventListener('click', async ()=>{
+    if(!currentUser) return alert('Login as provider to add listing');
+    // read fields
+    const name = document.getElementById('pName').value.trim();
+    const phone = document.getElementById('pPhone').value.trim();
+    const lat = parseFloat(document.getElementById('pLat').value);
+    const lng = parseFloat(document.getElementById('pLng').value);
+    const city = (document.getElementById('pCity').value.trim() || detectRegion(lat,lng));
+    if(!name || !phone || isNaN(lat) || isNaN(lng)) return alert('Please fill name, phone, lat & lng');
+    // store in Firestore
+    try{
+      await db.collection('chargers').add({
+        name, phone, lat, lng, city, type:'AC 7.4kW', baseAmount:300, providerId: currentUser.uid, rating:4.6
+      });
+      alert('Listing added — saved to cloud');
+      // clear inputs
+      document.getElementById('pName').value=''; document.getElementById('pPhone').value=''; document.getElementById('pLat').value=''; document.getElementById('pLng').value='';
+    }catch(e){ alert('Add listing error: '+e.message); }
+  });
+
+  // Center map to user's current location (if allowed)
+  centerMapBtn.addEventListener('click', ()=>{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const lat = pos.coords.latitude; const lng = pos.coords.longitude;
+        map.panTo({lat,lng}); map.setZoom(14);
+        // fill lat/lng to inputs to help provider
+        document.getElementById('pLat').value = lat.toFixed(6);
+        document.getElementById('pLng').value = lng.toFixed(6);
+      }, err => alert('Location error: '+ err.message));
+    } else alert('Geolocation not supported');
+  });
+
+  // ---------------- Booking Flow ----------------
+  function openBooking(charger){
+    if(!currentUser){ showAuth(); return; }
+    selectedCharger = charger;
+    const city = detectRegion(charger.lat, charger.lng, charger.city);
+    const rate = commissionFor(city);
+    bookingInfo.innerHTML = `<b>${escapeHtml(charger.name)}</b><div class="muted">${escapeHtml(city)} • ${escapeHtml(charger.type||'AC/DC')}</div>`;
+    commissionPreview.textContent = `Commission: ${(rate*100).toFixed(0)}% will be auto-deducted.`;
+    callProviderBtn.onclick = ()=> window.location.href = `tel:${charger.phone||''}`;
+    bkAmount.value = charger.baseAmount || 300;
+    bkDate.value = ''; bkTime.value = '';
+    showBooking();
+  }
+
+  closeBooking.addEventListener('click', hideBooking);
+
+  // Razorpay & booking creation
+  payNowBtn.addEventListener('click', async ()=>{
+    if(!selectedCharger) return alert('Select a charger first');
+    const date = bkDate.value; const time = bkTime.value; const amount = parseFloat(bkAmount.value || '0');
+    if(!date || !time || amount <= 0) return alert('Select date, time and valid amount');
+    // put tentative booking in Firestore
+    const bookingDoc = await db.collection('bookings').add({
+      ownerId: currentUser.uid,
+      providerId: selectedCharger.providerId || 'unknown',
+      chargerId: selectedCharger.id || null,
+      city: detectRegion(selectedCharger.lat, selectedCharger.lng, selectedCharger.city),
+      date, time, amount,
+      status: 'initiated', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    // compute commission & provider earning after payment
+    const city = detectRegion(selectedCharger.lat, selectedCharger.lng, selectedCharger.city);
+    const rate = commissionFor(city);
+
+    // Prepare Razorpay options (test)
+    if(!RAZORPAY_KEY_ID || RAZORPAY_KEY_ID === 'YOUR_RAZORPAY_KEY_ID'){
+      alert('Replace RAZORPAY_KEY_ID with your Razorpay test key to run payments. For demo, booking marked as paid mock.');
+      // For demo mode: mark booking as paid and update commission
+      const commission = +(amount * rate).toFixed(2);
+      const providerEarning = +(amount - commission).toFixed(2);
+      await db.collection('bookings').doc(bookingDoc.id).set({
+        status:'paid', commission, providerEarning, paymentMock:true
+      }, { merge:true });
+      hideBooking();
+      alert(`Demo booking completed. Commission ₹${commission} deducted. Provider earns ₹${providerEarning}.`);
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY_ID,
+      amount: Math.round(amount * 100), // paise
+      currency: 'INR',
+      name: 'ChargeHub',
+      description: `Booking - ${selectedCharger.name}`,
+      handler: async function(response){
+        // on success update booking
+        const commission = +(amount * rate).toFixed(2);
+        const providerEarning = +(amount - commission).toFixed(2);
+        await db.collection('bookings').doc(bookingDoc.id).set({
+          status:'paid',
+          commission, providerEarning,
+          paymentId: response.razorpay_payment_id,
+          paidAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge:true });
+        hideBooking();
+        alert(`Payment successful. Commission ₹${commission} deducted. Provider earns ₹${providerEarning}.`);
+        // Show rating modal if desired
+        showRating();
+      },
+      prefill: { email: currentUser.email || '' },
+      theme: { color: '#39ff14' }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', async (resp) => {
+      await db.collection('bookings').doc(bookingDoc.id).set({ status:'failed', reason: resp.error.description }, { merge:true });
+      alert('Payment failed: ' + resp.error.description);
+    });
+    rzp.open();
+  });
+
+  // ---------------- Ratings / Reviews ----------------
+  // Close rating modal
+  closeRating.addEventListener('click', hideRating);
+  submitRating.addEventListener('click', async ()=>{
+    if(!currentUser) return alert('Login to submit rating');
+    const score = parseInt(document.getElementById('ratingScore').value);
+    const text = document.getElementById('ratingText').value.trim();
+    // attach to last booking by this user and selectedCharger if possible (simple approach)
+    // In production, choose exact booking id to rate
+    await db.collection('ratings').add({
+      chargerId: selectedCharger?.id || null,
+      providerId: selectedCharger?.providerId || null,
+      ownerId: currentUser.uid,
+      score, text, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    hideRating();
+    alert('Thanks for rating!');
+  });
+
+  // ---------------- Dashboard Summaries (realtime) ----------------
+  function startDashboardListeners(){
+    if(!currentUser) return;
+    // Provider earnings (paid bookings where providerId == currentUser.uid)
+    db.collection('bookings')
+      .where('providerId','==', currentUser.uid)
+      .where('status','==','paid')
+      .onSnapshot(snapshot=>{
+        let total=0, comm=0, count=0;
+        snapshot.forEach(doc=>{
+          const b = doc.data();
+          total += b.providerEarning || 0;
+          comm += b.commission || 0;
+          count++;
+        });
+        earningsBody.innerHTML = count ? `<div class="muted">Completed: ${count} • Earnings: ₹${total.toFixed(2)} • Commission collected: ₹${comm.toFixed(2)}</div>` : 'No earnings yet.';
+      });
+
+    // Owner bookings
+    db.collection('bookings')
+      .where('ownerId','==', currentUser.uid)
+      .orderBy('createdAt','desc')
+      .onSnapshot(snapshot=>{
+        let html='';
+        snapshot.forEach(doc=>{
+          const b = doc.data();
+          html += `<div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.01);margin-bottom:8px">
+              <div style="font-weight:700">${escapeHtml(b.city || 'Unknown')}</div>
+              <div class="muted">On ${b.date} ${b.time} • Status: ${b.status}</div>
+              <div style="margin-top:6px"><span class="pill">₹${(b.amount||0)}</span></div>
+            </div>`;
+        });
+        bookingsBody.innerHTML = html || 'No bookings yet.';
+      });
+  }
+
+  // ---------------- Utility functions ----------------
+  function escapeHtml(str){
+    if(!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // ---------------- Search & Small interactions ----------------
+  findBtn.addEventListener('click', ()=> {
+    document.getElementById('search').scrollIntoView({behavior:'smooth'});
+  });
+  searchBtn.addEventListener('click', ()=> {
+    alert('Search is a demo — map shows all chargers. Use filters later.');
+    document.getElementById('search').scrollIntoView({behavior:'smooth'});
+  });
+
+  openList.addEventListener('click', ()=> {
+    // prompt auth and then switch to provider role
+    showAuth();
+    // switch radio to Provider after opening
+    setTimeout(()=> { document.querySelector('input[name="role"][value="Provider"]').checked = true; }, 80);
+  });
+  becomeProvider.addEventListener('click', ()=> {
+    showAuth();
+    setTimeout(()=> { document.querySelector('input[name="role"][value="Provider"]').checked = true; }, 80);
+  });
+
+  // ---------------- Start: load Google Maps script and prepare UI ---------------
+  loadGoogleMaps();
+
+  // When map loaded and user logs in, start listeners & dashboard
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+    if(user){
+      startDashboardListeners();
+      // show/hide UI
+      document.getElementById('openAuth').style.display = 'none';
+      document.getElementById('openAuth').disabled = true;
+      // Show provider quick if role is provider
+      db.collection('users').doc(user.uid).get().then(snapshot=>{
+        const role = snapshot.exists ? (snapshot.data().role||'Owner') : 'Owner';
+        setRoleUI(role === 'Provider' ? 'Provider' : 'Owner');
+      });
+    } else {
+      document.getElementById('openAuth').style.display = 'inline-flex';
+      setRoleUI('Owner');
+    }
+  });
+
+  // ---------------- Helper: create sample data (optional) ----------------
+  // Use this in dev console if DB empty:
+  // db.collection('chargers').add({ name:'Sample — DC 30kW Andheri', phone:'+919999000111', lat:19.136, lng:72.833, city:'Mumbai', type:'DC 30kW', baseAmount:300, providerId:'demo', rating:4.7 });
+
+  // ---------------- End of script ----------------
+  </script>
+</body>
+</html>
