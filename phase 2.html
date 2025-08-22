@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChargeHub – Phase 4 (Bookings + Payments + Commission)</title>
+  <!-- Fonts (optional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ======== BASIC THEME (CRED-style dark neon) ======== */
+    :root{
+      --bg:#0a0b0d; --card:#101216; --text:#f2f5f7; --muted:#9aa0a6;
+      --primary:#39ff14; --cyan:#00ffff; --purple:#b026ff; --border:rgba(255,255,255,.08);
+      --radius:18px; --glow: 0 0 0 2px rgba(57,255,20,.25), 0 0 24px rgba(57,255,20,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 600px at 90% -10%, rgba(176,38,255,.06), transparent 60%),
+                      radial-gradient(900px 500px at 0% 100%, rgba(0,255,255,.05), transparent 60%), var(--bg);
+      color:var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; line-height:1.5}
+    a{color:inherit; text-decoration:none}
+    .container{width:min(1150px,92vw); margin-inline:auto}
+
+    /* Navbar */
+    .nav{position:sticky; top:0; z-index:60; backdrop-filter:saturate(140%) blur(12px); background:rgba(10,12,14,.6); border-bottom:1px solid var(--border)}
+    .nav-wrap{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:36px; height:36px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg, rgba(57,255,20,.2), rgba(0,255,255,.12))}
+    .brand h1{font-family:Poppins; font-weight:700; letter-spacing:.6px; margin:0}
+    .tag{font-size:12px; color:var(--muted)}
+    .nav-actions{display:flex; gap:10px}
+    .btn{padding:11px 18px; border-radius:999px; border:1px solid var(--border); background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)); color:var(--text); font-weight:600; letter-spacing:.3px; transition:.25s ease; display:inline-flex; align-items:center; gap:8px}
+    .btn:hover{transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    .btn-primary{border-color:rgba(57,255,20,.35); background:linear-gradient(135deg, rgba(57,255,20,.15), rgba(0,0,0,.0)); box-shadow:var(--glow)}
+
+    /* Sections */
+    .section{padding:56px 0}
+    .headline{font-family:Poppins; font-size:44px; font-weight:700; margin:0 0 8px}
+    .sub{color:var(--muted); margin:0 0 18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid var(--border); border-radius:var(--radius); padding:18px}
+
+    /* Map + list */
+    .map-wrap{display:grid; grid-template-columns:1.2fr .8fr; gap:16px}
+    #map{height:440px; border-radius:var(--radius); border:1px solid var(--border); overflow:hidden}
+    .list{display:flex; flex-direction:column; gap:12px}
+    .row{display:flex; justify-content:space-between; align-items:center; gap:12px; border:1px solid var(--border); border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01))}
+    .pill{font-size:12px; border:1px solid var(--border); padding:6px 10px; border-radius:999px}
+
+    /* Modal */
+    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100}
+    .modal{width:min(560px,92vw); background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid var(--border); border-radius:22px; padding:22px}
+    .modal h3{margin:0 0 8px; font-family:Poppins}
+
+    .hidden{display:none}
+
+    @media (max-width: 920px){ .map-wrap{grid-template-columns:1fr} .headline{font-size:34px} }
+  </style>
+</head>
+<body>
+  <!-- ============ NAVBAR ============ -->
+  <header class="nav">
+    <div class="container nav-wrap">
+      <a class="brand" href="#">
+        <div class="logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12Z" stroke="rgba(57,255,20,.85)" stroke-width="2"/>
+            <path d="M9 9h6m-4-3v3m4-3v3" stroke="rgba(57,255,20,.85)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>CHARGEHUB</h1>
+          <div class="tag">Charge Anywhere and Connect Everywhere</div>
+        </div>
+      </a>
+      <nav class="nav-actions">
+        <button class="btn" id="openAuth">Login / Signup</button>
+        <button class="btn btn-primary" id="logoutBtn" style="display:none">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="section">
+    <div class="container">
+      <h2 class="headline">Find chargers. Book slots. Pay securely.</h2>
+      <p class="sub">Now with <b>location‑wise commission</b> auto‑deduction and real‑time provider earnings.</p>
+    </div>
+  </section>
+
+  <!-- ============ MAIN: MAP + LIST ============ -->
+  <section class="section" id="search">
+    <div class="container">
+      <div class="map-wrap">
+        <div id="map" aria-label="Map"></div>
+        <div class="list">
+          <div class="card">
+            <h3 style="margin:0 0 6px; font-family:Poppins">Chargers Nearby</h3>
+            <div id="chargerList" class="list"></div>
+          </div>
+
+          <!-- Provider-only quick add (for demo) -->
+          <div id="providerQuickAdd" class="card hidden">
+            <h3 style="margin:0 0 6px; font-family:Poppins">Add Charger (Provider)</h3>
+            <input class="input" id="pName" placeholder="Listing name" />
+            <input class="input" id="pPhone" placeholder="Phone (+91...)" />
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+              <input class="input" id="pLat" placeholder="Latitude" />
+              <input class="input" id="pLng" placeholder="Longitude" />
+            </div>
+            <input class="input" id="pCity" placeholder="City (Mumbai / Delhi / Pune / Bengaluru)" />
+            <button class="btn btn-primary" id="addListing">Add Listing</button>
+          </div>
+
+          <!-- Provider earnings summary -->
+          <div id="providerEarnings" class="card hidden">
+            <h3 style="margin:0 0 6px; font-family:Poppins">Earnings Summary</h3>
+            <div id="earningsBody" class="sub">No bookings yet.</div>
+          </div>
+
+          <!-- Owner bookings summary -->
+          <div id="ownerBookings" class="card hidden">
+            <h3 style="margin:0 0 6px; font-family:Poppins">Your Bookings</h3>
+            <div id="bookingsBody" class="sub">No bookings yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AUTH MODAL ============ -->
+  <div class="modal-backdrop" id="authModal">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3>Create your account</h3>
+        <button class="btn" id="closeAuth">Close</button>
+      </div>
+      <p class="sub" style="margin-top:6px">Choose role and continue.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px">
+        <label class="card" style="display:flex; align-items:center; gap:8px"><input type="radio" name="role" value="Owner" checked> Owner</label>
+        <label class="card" style="display:flex; align-items:center; gap:8px"><input type="radio" name="role" value="Provider"> Provider</label>
+      </div>
+      <div style="display:grid; gap:10px; margin-top:12px">
+        <input class="input" id="email" placeholder="Email" />
+        <input class="input" id="password" type="password" placeholder="Password" />
+      </div>
+      <div style="display:flex; gap:10px; margin-top:12px">
+        <button class="btn btn-primary" id="signupBtn">Signup</button>
+        <button class="btn" id="loginBtn">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BOOKING MODAL ============ -->
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3>Book Slot</h3>
+        <button class="btn" id="closeBooking">Close</button>
+      </div>
+      <div id="bookingInfo" class="sub" style="margin-top:6px"></div>
+      <div style="display:grid; gap:10px; margin-top:12px">
+        <input class="input" id="bkDate" type="date" />
+        <input class="input" id="bkTime" type="time" />
+        <input class="input" id="bkAmount" type="number" placeholder="Amount (₹) e.g., 300" />
+      </div>
+      <div class="sub" id="commissionPreview" style="margin-top:6px"></div>
+      <div style="display:flex; gap:10px; margin-top:12px">
+        <button class="btn btn-primary" id="payBtn">Pay & Confirm</button>
+        <button class="btn" id="callBtn">Call Provider</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCRIPTS: Firebase, Firestore, Razorpay ============ -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <script>
+    /* ===================== CONFIG (EDIT THESE) ===================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCaxpS07Mg4LyiSqABF2zLwO4t1LAgX1FQ",
+      authDomain: "chargehub-feb64.firebaseapp.com",
+      projectId: "chargehub-feb64",
+      storageBucket: "chargehub-feb64.firebasestorage.app",
+      messagingSenderId: "148105202234",
+      appId: "1:148105202234:web:24be49292f4c43d01e4303"
+    };
+    const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+    const RAZORPAY_KEY_ID = 'rzp_test_xxxxxxxx'; // 🔸 put Razorpay TEST key here
+    /* =============================================================== */
+
+    // Small helpers
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    // Auth modal
+    const authModal = $('#authModal');
+    $('#openAuth').addEventListener('click', ()=> authModal.style.display='flex');
+    $('#closeAuth').addEventListener('click', ()=> authModal.style.display='none');
+
+    // Booking modal
+    const bookingModal = $('#bookingModal');
+    $('#closeBooking').addEventListener('click', ()=> bookingModal.style.display='none');
+
+    // Firebase init
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Global user+role state
+    let currentUser = null;
+    let currentRole = null; // "Owner" | "Provider"
+
+    // ===== COMMISSION TABLE (city/region wise) =====
+    // You can later move this to Firestore collection `commissionRates`
+    const COMMISSION_RATES = {
+      Mumbai: 0.10,
+      Delhi: 0.12,
+      Pune: 0.08,
+      Bengaluru: 0.09,
+      Default: 0.05
+    };
+
+    // Basic region detector using lat/lng bounding boxes
+    function detectRegion(lat, lng, fallbackCity){
+      // Mumbai bbox
+      if(lat>18.8 && lat<19.4 && lng>72.7 && lng<73.1) return 'Mumbai';
+      // Delhi bbox
+      if(lat>28.3 && lat<28.9 && lng>76.8 && lng<77.5) return 'Delhi';
+      // Pune bbox
+      if(lat>18.4 && lat<18.7 && lng>73.7 && lng<73.95) return 'Pune';
+      // Bengaluru bbox
+      if(lat>12.85 && lat<13.2 && lng>77.45 && lng<77.8) return 'Bengaluru';
+      return fallbackCity || 'Default';
+    }
+
+    function commissionFor(city){
+      return COMMISSION_RATES[city] ?? COMMISSION_RATES.Default;
+    }
+
+    // UI toggles by role
+    function setRoleUI(role){
+      currentRole = role;
+      const isProvider = role === 'Provider';
+      $('#providerQuickAdd').classList.toggle('hidden', !isProvider);
+      $('#providerEarnings').classList.toggle('hidden', !isProvider);
+      $('#ownerBookings').classList.toggle('hidden', isProvider);
+    }
+
+    // ===== AUTH: signup, login, role persistence =====
+    async function signup(){
+      const email = $('#email').value.trim();
+      const password = $('#password').value.trim();
+      const role = [...$$('input[name="role"]')].find(r=>r.checked)?.value || 'Owner';
+      try{
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        currentUser = userCred.user;
+        await db.collection('users').doc(currentUser.uid).set({ role });
+        setRoleUI(role);
+        $('#logoutBtn').style.display = 'inline-flex';
+        authModal.style.display = 'none';
+        alert('Signup successful as '+role);
+      }catch(e){ alert(e.message); }
+    }
+
+    async function login(){
+      const email = $('#email').value.trim();
+      const password = $('#password').value.trim();
+      try{
+        const userCred = await auth.signInWithEmailAndPassword(email, password);
+        currentUser = userCred.user;
+        const snap = await db.collection('users').doc(currentUser.uid).get();
+        const role = snap.exists ? (snap.data().role || 'Owner') : 'Owner';
+        setRoleUI(role);
+        $('#logoutBtn').style.display = 'inline-flex';
+        authModal.style.display = 'none';
+      }catch(e){ alert(e.message); }
+    }
+
+    async function logout(){
+      await auth.signOut();
+      currentUser = null; currentRole = null;
+      $('#logoutBtn').style.display = 'none';
+      setRoleUI('Owner');
+      alert('Logged out');
+    }
+
+    $('#signupBtn').addEventListener('click', signup);
+    $('#loginBtn').addEventListener('click', login);
+    $('#logoutBtn').addEventListener('click', logout);
+
+    auth.onAuthStateChanged(async (u)=>{
+      currentUser = u;
+      if(u){
+        const snap = await db.collection('users').doc(u.uid).get();
+        setRoleUI(snap.exists ? (snap.data().role||'Owner') : 'Owner');
+        $('#logoutBtn').style.display = 'inline-flex';
+      }
+    });
+
+    // ===== MAPS & CHARGERS =====
+    let map, infoWindow; let unsubscribeChargers = null; let markersById = {};
+
+    function initMap(){
+      map = new google.maps.Map(document.getElementById('map'), {
+        center:{lat:19.1136, lng:72.8697}, zoom:11,
+        styles:[ { elementType:'geometry', stylers:[{color:'#1d1f21'}] },
+                 { elementType:'labels.text.fill', stylers:[{color:'#e0e0e0'}] },
+                 { elementType:'labels.text.stroke', stylers:[{color:'#1d1f21'}] },
+                 { featureType:'road', elementType:'geometry', stylers:[{color:'#2a2d2f'}] },
+                 { featureType:'water', elementType:'geometry', stylers:[{color:'#0b0d10'}] } ]
+      });
+      infoWindow = new google.maps.InfoWindow();
+      startChargersListener();
+    }
+
+    function startChargersListener(){
+      // Realtime Firestore listener
+      if(unsubscribeChargers) unsubscribeChargers();
+      unsubscribeChargers = db.collection('chargers').onSnapshot((snap)=>{
+        const list = $('#chargerList'); list.innerHTML = '';
+        snap.forEach(doc=>{
+          const c = { id: doc.id, ...doc.data() };
+          // Marker
+          if(!markersById[c.id]){
+            const marker = new google.maps.Marker({
+              position:{lat:c.lat, lng:c.lng}, map, title:c.name,
+              icon:{ path: google.maps.SymbolPath.CIRCLE, scale:8, fillColor:'#39ff14', fillOpacity:1, strokeColor:'#00ffff', strokeWeight:1 }
+            });
+            marker.addListener('click', ()=> openChargerInfo(c, marker));
+            markersById[c.id] = marker;
+          }
+          // List row
+          const row = document.createElement('div'); row.className='row';
+          row.innerHTML = `<div><div style="font-weight:700">${c.name}</div>
+                           <div class="sub">${c.city||'Unknown'} • ${c.type||'AC/DC'} • ₹${c.baseAmount||'—'}</div></div>
+                           <div style="display:flex; gap:8px; align-items:center">
+                             <span class="pill">${(c.rating||4.6).toFixed(1)}★</span>
+                             <a class="btn" href="tel:${c.phone}">Call</a>
+                             <button class="btn btn-primary">Book</button>
+                           </div>`;
+          row.querySelector('button').addEventListener('click', ()=> openBooking(c));
+          row.querySelector('a').addEventListener('click', e=> e.stopPropagation());
+          row.addEventListener('click', ()=> google.maps.event.trigger(markersById[c.id], 'click'));
+          list.appendChild(row);
+        });
+      });
+    }
+
+    function openChargerInfo(c, marker){
+      const city = detectRegion(c.lat, c.lng, c.city);
+      const rate = commissionFor(city);
+      infoWindow.setContent(`
+        <div style="min-width:240px">
+          <div style="font-weight:700; margin-bottom:4px">${c.name}</div>
+          <div style="font-size:12px; color:#9aa0a6; margin-bottom:6px">${city} • ${c.type||'AC/DC'} • ${(c.rating||4.6).toFixed(1)}★</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap">
+            <a class="btn" href="tel:${c.phone}">Call</a>
+            <button class="btn btn-primary" onclick='(${openBooking.toString()})(${JSON.stringify(c)})'>Book</button>
+          </div>
+          <div style="margin-top:6px; font-size:12px; color:#9aa0a6">Commission for ${city}: ${(rate*100).toFixed(0)}%</div>
+        </div>`);
+      infoWindow.open(map, marker);
+    }
+
+    // Provider quick add
+    $('#addListing').addEventListener('click', async ()=>{
+      if(!currentUser || currentRole!== 'Provider') return alert('Login as Provider to add');
+      const name = $('#pName').value.trim();
+      const phone = $('#pPhone').value.trim();
+      const lat = parseFloat($('#pLat').value); const lng = parseFloat($('#pLng').value);
+      const city = ($('#pCity').value.trim() || detectRegion(lat,lng));
+      if(!name || !phone || isNaN(lat) || isNaN(lng)) return alert('Fill name, phone, lat, lng');
+      const docRef = await db.collection('chargers').add({
+        name, phone, lat, lng, city, type:'AC 7.4kW', baseAmount:300, providerId: currentUser.uid, rating:4.6
+      });
+      alert('Listing added');
+    });
+
+    // ===== BOOKINGS + PAYMENTS =====
+    let bookingContext = null; // keeps selected charger for booking
+
+    function openBooking(charger){
+      if(!currentUser){ authModal.style.display='flex'; return; }
+      bookingContext = charger;
+      const city = detectRegion(charger.lat, charger.lng, charger.city);
+      const rate = commissionFor(city);
+      $('#bookingInfo').innerHTML = `<b>${charger.name}</b><br/><span style="color:#9aa0a6">${city} • ${charger.type||'AC/DC'}</span>`;
+      $('#commissionPreview').textContent = `Commission for ${city}: ${(rate*100).toFixed(0)}% (auto-deducted after payment)`;
+      $('#callBtn').onclick = ()=> window.location.href = `tel:${charger.phone}`;
+      bookingModal.style.display = 'flex';
+    }
+
+    async function createBookingAndPay(){
+      const date = $('#bkDate').value; const time = $('#bkTime').value; const amount = parseFloat($('#bkAmount').value||'0');
+      if(!date || !time || amount<=0) return alert('Select date, time, amount');
+      const c = bookingContext; const city = detectRegion(c.lat,c.lng,c.city); const rate = commissionFor(city);
+
+      // Pre-create pending booking (so we get bookingId)
+      const pending = await db.collection('bookings').add({
+        ownerId: currentUser.uid,
+        providerId: c.providerId || 'unknown',
+        chargerId: c.id || 'unknown',
+        city, amount, commission: 0, providerEarning: 0,
+        date, time, status: 'initiated', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Razorpay Checkout (TEST)
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: Math.round(amount*100), // paise
+        currency: 'INR',
+        name: 'ChargeHub',
+        description: `Booking for ${c.name}`,
+        handler: async function (response){
+          // On success → compute commission & update booking
+          const commission = +(amount * rate).toFixed(2);
+          const providerEarning = +(amount - commission).toFixed(2);
+          await db.collection('bookings').doc(pending.id).set({
+            paymentId: response.razorpay_payment_id,
+            status: 'paid',
+            commission, providerEarning
+          }, { merge:true });
+          bookingModal.style.display='none';
+          alert(`Payment success. Commission ₹${commission} deducted. Provider earns ₹${providerEarning}.`);
+        },
+        prefill: { email: currentUser.email || 'user@example.com' },
+        theme: { color: '#39ff14' }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', async function (resp){
+        await db.collection('bookings').doc(pending.id).set({ status:'failed', reason: resp.error.description }, { merge:true });
+        alert('Payment failed: '+ resp.error.description);
+      });
+      rzp.open();
+    }
+
+    $('#payBtn').addEventListener('click', createBookingAndPay);
+
+    // ===== DASHBOARDS (summaries) =====
+    // Provider earnings realtime
+    auth.onAuthStateChanged(u=>{
+      if(!u) return;
+      // Provider earnings
+      db.collection('bookings').where('providerId','==',u.uid).where('status','==','paid')
+        .onSnapshot(snap=>{
+          let total = 0, comm=0, count=0; let rows=[];
+          snap.forEach(d=>{ const b=d.data(); total+=b.providerEarning||0; comm+=b.commission||0; count++; rows.push(b); });
+          const el=$('#earningsBody');
+          el.innerHTML = count? `<div><b>Completed:</b> ${count} • <b>Earnings:</b> ₹${total.toFixed(2)} • <b>Commission paid:</b> ₹${comm.toFixed(2)}</div>` : 'No bookings yet.';
+        });
+
+      // Owner bookings
+      db.collection('bookings').where('ownerId','==',u.uid).orderBy('createdAt','desc')
+        .onSnapshot(snap=>{
+          let html=''; let any=false;
+          snap.forEach(d=>{ const b=d.data(); any=true; html += `<div class="row"><div><div><b>${b.city}</b> • ${b.date} ${b.time}</div><div class="sub">Status: ${b.status}</div></div><div class="pill">Paid: ₹${(b.status==='paid'?b.amount:0)||b.amount}</div></div>`; });
+          $('#bookingsBody').innerHTML = any? html : 'No bookings yet.';
+        });
+    });
+
+    // ===== LOAD GOOGLE MAPS =====
+    (function loadMaps(){
+      if(!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY==='YOUR_GOOGLE_MAPS_API_KEY'){ console.warn('Add Google Maps API key'); return; }
+      const s=document.createElement('script');
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GOOGLE_MAPS_API_KEY)}&callback=initMap`;
+      s.async=true; s.defer=true; document.head.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
